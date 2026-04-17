@@ -1,5 +1,5 @@
 const express = require("express");
-const mysql = require("mysql");
+const mysql = require("mysql2");
 const cors = require("cors");
 require("dotenv").config();
 const port = process.env.PORT || 7000;
@@ -7,7 +7,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["https://asho-dekhi.vercel.app"],
+    origin: ["https://asho-dekhi.vercel.app", "http://localhost:5173"],
     methods: ["POST", "GET"],
   })
 );
@@ -151,7 +151,7 @@ app.post("/showtimesDates", (req, res) => {
       JOIN shown_in ON showtimes.id = shown_in.showtime_id
       JOIN hall ON shown_in.hall_id = hall.id
       WHERE hall.theatre_id = ?
-      ORDER BY showtimes.id DESC
+      ORDER BY showtimes.showtime_date DESC
       LIMIT 4
   ) AS subquery
   ORDER BY subquery.showtime_date ASC`;
@@ -254,6 +254,8 @@ app.post("/purchaseTicket", (req, res) => {
   const sql =
     "INSERT INTO ticket (price,purchase_date,payment_id,seat_id,hall_id,movie_id,showtimes_id) VALUES (?,?,?,?,?,?,?)";
 
+  db.query("DELETE FROM seat_lock WHERE seat_id = ? AND showtime_id = ?", [seat_id, showtime_id], () => {});
+
   db.query(
     sql,
     [price, date, payment_id, seat_id, hall_id, movie_id, showtime_id],
@@ -263,6 +265,52 @@ app.post("/purchaseTicket", (req, res) => {
       return res.json(data);
     }
   );
+});
+
+app.post("/lockSeat", (req, res) => {
+  const seatId = req.body.seat_id;
+  const showtimeId = req.body.showtime_id;
+  const email = req.body.user_email || 'guest';
+
+  db.query("DELETE FROM seat_lock WHERE expires_at < NOW()", (err) => {
+    if (err) console.error("Clean locks error", err);
+
+    const sql = `INSERT INTO seat_lock (seat_id, showtime_id, user_email, expires_at) VALUES (?, ?, ?, NOW() + INTERVAL 5 MINUTE)`;
+    
+    db.query(sql, [seatId, showtimeId, email], (err2) => {
+      if (err2) {
+        if (err2.code === 'ER_DUP_ENTRY') {
+          return res.json({ success: false, message: "Seat already locked" });
+        }
+        return res.status(500).json(err2);
+      }
+      return res.json({ success: true });
+    });
+  });
+});
+
+app.post("/unlockSeat", (req, res) => {
+  const seatId = req.body.seat_id;
+  const showtimeId = req.body.showtime_id;
+  const email = req.body.user_email || 'guest';
+
+  const sql = `DELETE FROM seat_lock WHERE seat_id = ? AND showtime_id = ? AND user_email = ?`;
+  db.query(sql, [seatId, showtimeId, email], (err, data) => {
+    if (err) return res.status(500).json(err);
+    return res.json({ success: true });
+  });
+});
+
+app.post("/lockedSeats", (req, res) => {
+  const showtimeId = req.body.showtime_id;
+  
+  db.query("DELETE FROM seat_lock WHERE expires_at < NOW()", () => {
+    const sql = `SELECT seat_id, user_email FROM seat_lock WHERE showtime_id = ? AND expires_at > NOW()`;
+    db.query(sql, [showtimeId], (err, data) => {
+      if (err) return res.status(500).json(err);
+      return res.json(data);
+    });
+  });
 });
 
 app.post("/recentPurchase", (req, res) => {
@@ -318,7 +366,7 @@ app.post("/login", (req, res) => {
     if (err) return res.json(err);
 
     if (data.length === 0) {
-      return res.status(404).json({ message: "Sorry, User not found!" });
+      return res.status(401).json({ message: "Sorry, User credentials incorrect!" });
     }
 
     return res.json(data);
@@ -425,7 +473,19 @@ app.post("/customerPurchases", (req, res) => {
   JOIN theatre TH ON H.theatre_id = TH.id
   JOIN seat ST ON T.seat_id = ST.id
   WHERE P.email = ?
-  GROUP BY PA.id 
+  GROUP BY 
+    PA.id, 
+    P.email, 
+    TH.name, 
+    H.name, 
+    M.name, 
+    T.movie_id, 
+    M.image_path, 
+    S.movie_start_time, 
+    S.show_type, 
+    S.showtime_date, 
+    PA.amount, 
+    T.purchase_date
   ORDER BY payment_id DESC`;
 
   db.query(sql, [email], (err, data) => {
@@ -787,5 +847,5 @@ app.post("/movieSwap", (req, res) => {
 
 // For local usage
 app.listen(port, () => {
-  console.log(`AshoDekhi backend running on ${port}`);
+  console.log(`CineDBX backend running on ${port}`);
 });

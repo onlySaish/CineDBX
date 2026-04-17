@@ -22,8 +22,8 @@ export const DateSelector = ({ paymentOngoing }) => {
             theatreId,
           }
         );
+        console.log("API response (showDatesData):", response.data);
         setShowDatesData(response.data);
-        dispatch(resetCart());
       } catch (err) {
         console.error(err);
       } finally {
@@ -41,7 +41,7 @@ export const DateSelector = ({ paymentOngoing }) => {
     };
   };
 
-  const dateOptions = showDatesData?.map((dateData, idx) => {
+  const dateOptions = Array.isArray(showDatesData) && showDatesData.map((dateData, idx) => {
     const day = new Date(dateData.showtime_date).toLocaleString("en-us", {
       weekday: "short",
     });
@@ -79,7 +79,10 @@ export const DateSelector = ({ paymentOngoing }) => {
           id={idx}
           name="Select Date"
           value={formattedDate}
-          onChange={(e) => dispatch(setShowDate(e.target.value))}
+          onChange={(e) => {
+            console.log("Selected date:", e.target.value);
+            dispatch(setShowDate(e.target.value));
+          }}
           checked={formattedDate === userDate}
         />
 

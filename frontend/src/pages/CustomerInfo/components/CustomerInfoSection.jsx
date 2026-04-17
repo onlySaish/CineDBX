@@ -50,20 +50,25 @@ export const CustomerInfoSection = () => {
             email: signedPerson.email,
           }
         );
-        const formattedData = response.data.map((dataObj) => {
-          const purDate = new Date(dataObj.purchase_date).toLocaleDateString(
-            "en-GB"
-          );
-          const showDate = new Date(dataObj.showtime_date).toLocaleDateString(
-            "en-GB"
-          );
-          return {
-            ...dataObj,
-            showtime_date: showDate,
-            purchase_date: purDate,
-          };
-        });
-        setCusTicketData(formattedData);
+        if (Array.isArray(response.data)) {
+          const formattedData = response.data.map((dataObj) => {
+            const purDate = new Date(dataObj.purchase_date).toLocaleDateString(
+              "en-GB"
+            );
+            const showDate = new Date(dataObj.showtime_date).toLocaleDateString(
+              "en-GB"
+            );
+            return {
+              ...dataObj,
+              showtime_date: showDate,
+              purchase_date: purDate,
+            };
+          });
+          setCusTicketData(formattedData);
+        } else {
+          console.error("Backend error getting purchases:", response.data);
+          setCusTicketData([]);
+        }
       } catch (err) {
         console.error(err);
       } finally {

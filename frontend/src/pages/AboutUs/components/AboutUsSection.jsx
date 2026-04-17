@@ -26,13 +26,13 @@ export const AboutUsSection = () => {
                 d="M360 94.59V296M443.13 212.87L296 360M417.41 360H216M299.13 443.13l-144-144M152 416V216M68.87 299.13l144-144M94.59 152H288M212.87 68.87L360 216"
               />
             </svg>
-            <h1 className="aboutus-logo-text">Asho Dekhi</h1>
+            <h1 className="aboutus-logo-text">CineDBX</h1>
           </div>
         </div>
         <div className="about-us-body">
-          <p>Welcome to ASHO DEKHI,</p>
+          <p>Welcome to CineDBX,</p>
           <p>
-            At ASHO DEKHI, we are passionate about delivering the ultimate
+            At CineDBX, we are passionate about delivering the ultimate
             cinematic experience to our valued moviegoers. Our mission is to
             transport you to a world of magic, wonder, and excitement every time
             you step into one of our theatres.
@@ -60,7 +60,7 @@ export const AboutUsSection = () => {
             you and your loved ones.
           </p>
           <p>
-            Join us at ASHO DEKHI and immerse yourself in the captivating world
+            Join us at CineDBX and immerse yourself in the captivating world
             of cinema. Get ready to unleash the movie magic and embark on a
             journey of pure entertainment, delight, and wonder. We can&apos;t
             wait to share the magic of the silver screen with you.

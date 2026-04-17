@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { showLoginModal } from "../../../reducers/authSlice";
-import { resetCart } from "../../../reducers/cartSlice";
+import { resetCart, setShowDate, setMovie } from "../../../reducers/cartSlice";
 
 export const ShowtimesCard = (props) => {
   const dates3d = props["3D"] ? Object.keys(props["3D"]) : [];
@@ -23,6 +23,13 @@ export const ShowtimesCard = (props) => {
               className="showtimes-startime-btn"
               onClick={() => {
                 dispatch(resetCart());
+                const d = new Date(curDate);
+                const show_dateStr = d.toLocaleString("en-us", { day: "numeric" });
+                const show_yearStr = d.toLocaleString("en-us", { year: "numeric" });
+                const show_monthStr = d.toLocaleString("en-us", { month: "numeric" });
+                const finalFormattedDate = `${show_yearStr}-${show_monthStr}-${show_dateStr}`;
+                dispatch(setShowDate(finalFormattedDate));
+                dispatch(setMovie(props.id));
                 isAuthenticated && signedPerson.person_type === "Customer"
                   ? navigate("/purchase")
                   : dispatch(showLoginModal());
@@ -61,6 +68,13 @@ export const ShowtimesCard = (props) => {
               className="showtimes-startime-btn"
               onClick={() => {
                 dispatch(resetCart());
+                const d = new Date(curDate);
+                const show_dateStr = d.toLocaleString("en-us", { day: "numeric" });
+                const show_yearStr = d.toLocaleString("en-us", { year: "numeric" });
+                const show_monthStr = d.toLocaleString("en-us", { month: "numeric" });
+                const finalFormattedDate = `${show_yearStr}-${show_monthStr}-${show_dateStr}`;
+                dispatch(setShowDate(finalFormattedDate));
+                dispatch(setMovie(props.id));
                 isAuthenticated && signedPerson.person_type === "Customer"
                   ? navigate("/purchase")
                   : dispatch(showLoginModal());

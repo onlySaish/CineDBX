@@ -5,7 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import HashLoader from "react-spinners/HashLoader";
 import { useDispatch, useSelector } from "react-redux";
 import { showLoginModal } from "../../../reducers/authSlice";
-import { resetCart } from "../../../reducers/cartSlice";
+import { resetCart, setShowDate, setMovie, setShowDetail } from "../../../reducers/cartSlice";
 
 export const MovieInfoSection = () => {
   const [movieData, setMovieData] = useState({});
@@ -51,7 +51,7 @@ export const MovieInfoSection = () => {
           name: movieDetailResponse.data[0].name,
           duration,
           release_date: formattedRelDate,
-          rating: movieDetailResponse.data[0].rating.toFixed(1),
+          rating: Number(movieDetailResponse.data[0].rating || 0).toFixed(1),
         };
 
         setMovieData(formattedMovieData);
@@ -128,6 +128,14 @@ export const MovieInfoSection = () => {
             className="showtimes-startime-btn"
             onClick={() => {
               dispatch(resetCart());
+              const d = new Date(showDate);
+              const show_dateStr = d.toLocaleString("en-us", { day: "numeric" });
+              const show_yearStr = d.toLocaleString("en-us", { year: "numeric" });
+              const show_monthStr = d.toLocaleString("en-us", { month: "numeric" });
+              const finalFormattedDate = `${show_yearStr}-${show_monthStr}-${show_dateStr}`;
+              dispatch(setShowDate(finalFormattedDate));
+              dispatch(setMovie(movieDetailsId));
+              dispatch(setShowDetail(`${singleTime.showtime_id},${singleTime.hall_id},${singleTime.price_per_seat}`));
               isAuthenticated && signedPerson.person_type === "Customer"
                 ? navigate("/purchase")
                 : dispatch(showLoginModal());
@@ -163,6 +171,14 @@ export const MovieInfoSection = () => {
             className="showtimes-startime-btn"
             onClick={() => {
               dispatch(resetCart());
+              const d = new Date(showDate);
+              const show_dateStr = d.toLocaleString("en-us", { day: "numeric" });
+              const show_yearStr = d.toLocaleString("en-us", { year: "numeric" });
+              const show_monthStr = d.toLocaleString("en-us", { month: "numeric" });
+              const finalFormattedDate = `${show_yearStr}-${show_monthStr}-${show_dateStr}`;
+              dispatch(setShowDate(finalFormattedDate));
+              dispatch(setMovie(movieDetailsId));
+              dispatch(setShowDetail(`${singleTime.showtime_id},${singleTime.hall_id},${singleTime.price_per_seat}`));
               isAuthenticated && signedPerson.person_type === "Customer"
                 ? navigate("/purchase")
                 : dispatch(showLoginModal());

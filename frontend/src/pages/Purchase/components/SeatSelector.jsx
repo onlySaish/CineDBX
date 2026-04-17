@@ -20,6 +20,8 @@ export const SeatSelector = ({ seatsData, setSeatsData, paymentOngoing }) => {
   } = useSelector((store) => store.cart);
 
   const dispatch = useDispatch();
+  const { signedPerson } = useSelector((store) => store.authentication);
+  const [lockedSeats, setLockedSeats] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,6 +46,57 @@ export const SeatSelector = ({ seatsData, setSeatsData, paymentOngoing }) => {
     fetchData();
   }, [userHallId, userShowtimeId, userMovieId, setSeatsData]);
 
+  useEffect(() => {
+    if (!userShowtimeId) return;
+    const fetchLocks = async () => {
+      try {
+        const resp = await axios.post(`${import.meta.env.VITE_API_URL}/lockedSeats`, { showtime_id: userShowtimeId });
+        setLockedSeats(resp.data);
+      } catch (e) { console.error(e); }
+    };
+    fetchLocks();
+    const interval = setInterval(fetchLocks, 3000);
+    return () => clearInterval(interval);
+  }, [userShowtimeId]);
+
+  const handleSeatClick = async (seat) => {
+    if (seat.booked_status === 0) return;
+    
+    const isLockedByOther = lockedSeats.some(l => l.seat_id === seat.seat_id && l.user_email !== (signedPerson?.email || "guest"));
+    if (isLockedByOther) {
+      alert("Seat already taken!");
+      return;
+    }
+
+    const isCurrentlySelected = userSeatList.includes(seat.seat_id);
+    if (!isCurrentlySelected) {
+       try {
+         const resp = await axios.post(`${import.meta.env.VITE_API_URL}/lockSeat`, {
+           seat_id: seat.seat_id,
+           showtime_id: userShowtimeId,
+           user_email: signedPerson?.email || "guest",
+         });
+         if (!resp.data.success) {
+           alert("Seat already locked!");
+           return;
+         }
+       } catch (e) {
+         console.error(e);
+       }
+    } else {
+       try {
+         await axios.post(`${import.meta.env.VITE_API_URL}/unlockSeat`, {
+           seat_id: seat.seat_id,
+           showtime_id: userShowtimeId,
+           user_email: signedPerson?.email || "guest",
+         });
+       } catch (e) {
+         console.error(e);
+       }
+    }
+    dispatch(setSeat(seat.seat_id));
+  };
+
   let rows = [];
   let rowSeat = [];
 
@@ -54,22 +107,23 @@ export const SeatSelector = ({ seatsData, setSeatsData, paymentOngoing }) => {
   seatsData.forEach((seat, idx) => {
     let seatStatus;
 
-    const handleTouchStart = (e) => {
-      e.preventDefault();
-      dispatch(setSeat(seat.seat_id));
-    };
-
     seat.booked_status === 0
       ? (seatStatus = "booked")
       : (seatStatus = "available");
 
+    const isLockedByOther = lockedSeats.some(l => l.seat_id === seat.seat_id && l.user_email !== (signedPerson?.email || "guest"));
+    if (isLockedByOther) seatStatus = "booked";
+
+    const handleTouchStart = (e) => {
+      e.preventDefault();
+      handleSeatClick(seat);
+    };
+
     const seatHtml = (
       <div
         className={`seat ${seatStatus}`}
-        disabled={loading || paymentOngoing}
-        onClick={() =>
-          seatStatus !== "booked" && dispatch(setSeat(seat.seat_id))
-        }
+        disabled={loading || paymentOngoing || isLockedByOther}
+        onClick={() => seatStatus !== "booked" && handleSeatClick(seat)}
         onTouchEnd={seatStatus !== "booked" ? handleTouchStart : undefined}
         key={seat.seat_id}
         style={{

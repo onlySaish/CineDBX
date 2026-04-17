@@ -33,9 +33,7 @@ export const LocationSelector = ({ paymentOngoing }) => {
     fetchData();
   }, [dispatch]);
 
-  useEffect(() => {
-    dispatch(resetCart());
-  }, [userLocation.id, dispatch]);
+
 
   const locationOptions = locationData?.map((location, idx) => {
     return (
@@ -51,6 +49,7 @@ export const LocationSelector = ({ paymentOngoing }) => {
     );
 
     dispatch(selectLocation(selectedLocationObj));
+    dispatch(resetCart());
   };
 
   return !loading ? (
