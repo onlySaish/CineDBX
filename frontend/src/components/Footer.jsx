@@ -124,15 +124,6 @@ export const Footer = () => {
 
       <h3 className="footer-heading">Our Theatres</h3>
 
-      <p className="copyright">
-        Copyright &copy; 2023 by NELOY SAHA, Inc. This work is licensed under
-        the terms of the{" "}
-        <a href="https://www.gnu.org/licenses/gpl-3.0.html">
-          GNU General Public License, version 3 or later (GPL-3.0-or-later)
-        </a>
-        .
-      </p>
-
       <div className="footer-address-container">
         {loading ? <HashLoader color="#eb3656" /> : locations}
       </div>

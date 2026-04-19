@@ -14,7 +14,7 @@ const HomePage = () => {
       <HeroSection />
       <HomeCollection />
       <Features />
-      <SocialLinks />
+      {/* <SocialLinks /> */}
       <Footer />
     </>
   );
